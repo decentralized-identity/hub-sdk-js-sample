@@ -1,0 +1,36 @@
+{
+  "name": "hub-sdk-js-sample",
+  "version": "0.1.0",
+  "description": "Sample application using the @decentralized-identiy/hub-sdk-js library.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "tslint --fix --project .",
+    "check-lint": "tslint --project .",
+    "start": "electron .",
+    "example": "node dist/example.js"
+  },
+  "author": "Decentralized Identity Foundation",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@decentralized-identity/did-auth-jose": "0.1.9",
+    "@decentralized-identity/did-common-typescript": "0.1.4",
+    "@decentralized-identity/hub-common-js": "0.1.1",
+    "@decentralized-identity/hub-sdk-js": "0.1.2",
+    "@types/classnames": "2.2.7",
+    "@types/lodash": "^4.14.121",
+    "@types/node": "10.12.24",
+    "bootstrap": "4.3.1",
+    "classnames": "2.2.6",
+    "electron": "4.0.4",
+    "linkstate": "1.1.1",
+    "lodash": "^4.17.11",
+    "preact": "8.4.2",
+    "typescript": "3.3.3"
+  },
+  "devDependencies": {
+    "tslint": "^5.13.0",
+    "tslint-config-standard": "^8.0.1"
+  }
+}

@@ -1,0 +1,59 @@
+/**
+ * Custom styles for the sample app.
+ */
+
+ .container-fluid {
+  height: 100vh;
+ }
+
+ .container-fluid > .row {
+  padding: 50px 0;
+ }
+
+ #app-container {
+  width: 400px;
+ }
+
+.start-screen .alert {
+  margin-top: 20px;
+}
+
+.start-screen textarea {
+  font-family: monospace;
+}
+
+.btn .spinner-border {
+  margin-right: 10px;
+  position: relative;
+  top: -2px;
+}
+
+.form-add-item {
+  margin-bottom: 20px;
+}
+
+.form-add-item input {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.list-group-item {
+  user-select: none;
+}
+
+.list-group-item.done label {
+  text-decoration: line-through;
+}
+
+.list-group-item.disabled .custom-control-input ~ .custom-control-label::before {
+  opacity: 0.5;
+}
+
+.list-group-item button.close {
+  position: relative;
+  top: -3px;
+}
+
+.list-group-item button.close:focus {
+  outline: none;
+}
