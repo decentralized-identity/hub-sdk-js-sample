@@ -15,7 +15,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@decentralized-identity/did-auth-jose": "0.1.9",
-    "@decentralized-identity/did-common-typescript": "0.1.4",
+    "@decentralized-identity/did-common-typescript": "0.1.7",
     "@decentralized-identity/hub-common-js": "0.1.1",
     "@decentralized-identity/hub-sdk-js": "0.1.2",
     "@types/classnames": "2.2.7",
