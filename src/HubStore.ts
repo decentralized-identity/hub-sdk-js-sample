@@ -4,7 +4,7 @@ import { IHubObjectQueryOptions, IObjectMetadata, IHubCommitQueryOptions } from 
 import RsaPrivateKey from '@decentralized-identity/did-auth-jose/dist/lib/crypto/rsa/RsaPrivateKey';
 import { HttpResolver } from '@decentralized-identity/did-common-typescript';
 import { ITodoItem } from './TodoModel';
-import { RsaCryptoSuite } from '@decentralized-identity/did-auth-jose';
+import { RsaCryptoSuite, PrivateKey } from '@decentralized-identity/did-auth-jose';
 const lodashGet = require('lodash/get');
 
 /**
@@ -39,6 +39,7 @@ export default class HubStore {
   private resolver: HttpResolver;
   private keyStore: KeyStoreMem;
   private privateKeyReference: string;
+  private privateKey: PrivateKey;
 
   constructor (private options: IHubConnectionOptions) {
 
@@ -50,18 +51,16 @@ export default class HubStore {
       clientJwk.kid = [options.clientDid, clientJwk.kid].join('#');
     }
 
-    var privateKey = RsaPrivateKey.wrapJwk(clientJwk.kid, clientJwk);
-    
+    this.privateKey = RsaPrivateKey.wrapJwk(clientJwk.kid, clientJwk);
     this.resolver = new HttpResolver(options.didResolver);
     this.keyStore = new KeyStoreMem();
 
     this.privateKeyReference = clientJwk.kid;
-    this.keyStore.save(this.privateKeyReference, privateKey).finally;
 
     this.signer = new CommitSigner({
       did: options.clientDid,
-      key: privateKey,
-      cryptoSuite: new RsaCryptoSuite
+      key: this.privateKey,
+      cryptoSuite: new RsaCryptoSuite()
     });
   }
 
@@ -102,6 +101,8 @@ export default class HubStore {
     } else {
       console.log(`Using user-specified Hub service endpoint: ${this.options.hubEndpoint}`);
     }
+
+    await this.keyStore.save(this.privateKeyReference, this.privateKey);
 
     this.hubSession = new HubSession({
       hubEndpoint: this.options.hubEndpoint,
