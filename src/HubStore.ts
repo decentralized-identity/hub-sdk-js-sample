@@ -1,9 +1,10 @@
-import { HubSession, HubObjectQueryRequest, HubCommitQueryRequest, CommitStrategyBasic, Commit, RsaCommitSigner,
-         HubWriteRequest, SignedCommit, HubObjectQueryResponse, HubCommitQueryResponse } from '@decentralized-identity/hub-sdk-js';
+import { HubSession, HubObjectQueryRequest, HubCommitQueryRequest, CommitStrategyBasic, Commit, CommitSigner,
+         HubWriteRequest, SignedCommit, HubObjectQueryResponse, HubCommitQueryResponse, KeyStoreMem } from '@decentralized-identity/hub-sdk-js';
 import { IHubObjectQueryOptions, IObjectMetadata, IHubCommitQueryOptions } from '@decentralized-identity/hub-common-js';
 import RsaPrivateKey from '@decentralized-identity/did-auth-jose/dist/lib/crypto/rsa/RsaPrivateKey';
 import { HttpResolver } from '@decentralized-identity/did-common-typescript';
 import { ITodoItem } from './TodoModel';
+import { RsaCryptoSuite } from '@decentralized-identity/did-auth-jose';
 const lodashGet = require('lodash/get');
 
 /**
@@ -34,9 +35,10 @@ export interface IHubConnectionOptions {
 export default class HubStore {
 
   private hubSession?: HubSession;
-  private privateKey: RsaPrivateKey;
-  private signer: RsaCommitSigner;
+  private signer: CommitSigner;
   private resolver: HttpResolver;
+  private keyStore: KeyStoreMem;
+  private privateKeyReference: string;
 
   constructor (private options: IHubConnectionOptions) {
 
@@ -48,12 +50,18 @@ export default class HubStore {
       clientJwk.kid = [options.clientDid, clientJwk.kid].join('#');
     }
 
-    this.privateKey = RsaPrivateKey.wrapJwk(clientJwk.kid, clientJwk);
+    var privateKey = RsaPrivateKey.wrapJwk(clientJwk.kid, clientJwk);
+    
     this.resolver = new HttpResolver(options.didResolver);
+    this.keyStore = new KeyStoreMem();
 
-    this.signer = new RsaCommitSigner({
+    this.privateKeyReference = clientJwk.kid;
+    this.keyStore.save(this.privateKeyReference, privateKey).finally;
+
+    this.signer = new CommitSigner({
       did: options.clientDid,
-      key: this.privateKey
+      key: privateKey,
+      cryptoSuite: new RsaCryptoSuite
     });
   }
 
@@ -100,8 +108,9 @@ export default class HubStore {
       hubDid: this.options.hubDid,
       resolver: this.resolver,
       clientDid: this.options.clientDid,
-      clientPrivateKey: this.privateKey,
-      targetDid: this.options.clientDid
+      clientPrivateKeyReference: this.privateKeyReference,
+      targetDid: this.options.clientDid,
+      keyStore: this.keyStore
     });
 
     // Test Hub connection
