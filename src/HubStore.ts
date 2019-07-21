@@ -1,9 +1,10 @@
-import { HubSession, HubObjectQueryRequest, HubCommitQueryRequest, CommitStrategyBasic, Commit, RsaCommitSigner,
-         HubWriteRequest, SignedCommit, HubObjectQueryResponse, HubCommitQueryResponse } from '@decentralized-identity/hub-sdk-js';
+import { HubSession, HubObjectQueryRequest, HubCommitQueryRequest, CommitStrategyBasic, Commit, CommitSigner,
+         HubWriteRequest, SignedCommit, HubObjectQueryResponse, HubCommitQueryResponse, KeyStoreMem } from '@decentralized-identity/hub-sdk-js';
 import { IHubObjectQueryOptions, IObjectMetadata, IHubCommitQueryOptions } from '@decentralized-identity/hub-common-js';
 import RsaPrivateKey from '@decentralized-identity/did-auth-jose/dist/lib/crypto/rsa/RsaPrivateKey';
 import { HttpResolver } from '@decentralized-identity/did-common-typescript';
 import { ITodoItem } from './TodoModel';
+import { RsaCryptoSuite, PrivateKey } from '@decentralized-identity/did-auth-jose';
 const lodashGet = require('lodash/get');
 
 /**
@@ -34,9 +35,11 @@ export interface IHubConnectionOptions {
 export default class HubStore {
 
   private hubSession?: HubSession;
-  private privateKey: RsaPrivateKey;
-  private signer: RsaCommitSigner;
+  private signer: CommitSigner;
   private resolver: HttpResolver;
+  private keyStore: KeyStoreMem;
+  private privateKeyReference: string;
+  private privateKey: PrivateKey;
 
   constructor (private options: IHubConnectionOptions) {
 
@@ -50,10 +53,14 @@ export default class HubStore {
 
     this.privateKey = RsaPrivateKey.wrapJwk(clientJwk.kid, clientJwk);
     this.resolver = new HttpResolver(options.didResolver);
+    this.keyStore = new KeyStoreMem();
 
-    this.signer = new RsaCommitSigner({
+    this.privateKeyReference = clientJwk.kid;
+
+    this.signer = new CommitSigner({
       did: options.clientDid,
-      key: this.privateKey
+      key: this.privateKey,
+      cryptoSuite: new RsaCryptoSuite()
     });
   }
 
@@ -95,13 +102,16 @@ export default class HubStore {
       console.log(`Using user-specified Hub service endpoint: ${this.options.hubEndpoint}`);
     }
 
+    await this.keyStore.save(this.privateKeyReference, this.privateKey);
+
     this.hubSession = new HubSession({
       hubEndpoint: this.options.hubEndpoint,
       hubDid: this.options.hubDid,
       resolver: this.resolver,
       clientDid: this.options.clientDid,
-      clientPrivateKey: this.privateKey,
-      targetDid: this.options.clientDid
+      clientPrivateKeyReference: this.privateKeyReference,
+      targetDid: this.options.clientDid,
+      keyStore: this.keyStore
     });
 
     // Test Hub connection
